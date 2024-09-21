@@ -1,68 +1,81 @@
 "use client";
 
-import Link from "next/link";
+import { ChangeEvent, useCallback, useState } from "react";
+import Image from "next/image";
+import coins from "../assets/coins.png";
 import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
+import { ArrowsUpDownIcon, WalletIcon } from "@heroicons/react/24/solid";
 
 const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
+  const [sellValue, setSellValue] = useState<number>();
+
+  const customOnChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const re = /^[0-9\b]+$/;
+    if (e.target.value === "" || re.test(e.target.value)) {
+      setSellValue(parseFloat(e.target.value) || 0);
+    }
+  }, []);
 
   return (
     <>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address address={connectedAddress} />
-          </div>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
+      <div className="container mx-auto flex flex-col justify-center">
+        <div className="text-center my-14">
+          <h1 className="font-mono font-semibold text-3xl">Swap anytime, anywhere, any token</h1>
+          <span className="text-xs text-white/50">...Almost</span>
         </div>
-
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
+        <div className="w-2/3 lg:w-1/3 m-auto">
+          <h1 className="text-4xl font-bold">Trade</h1>
+          <span className="text-blue-400">1 ENC ($0.69) = 0.0003 ETH ($2.56k)</span>
+          <div className="mockup-window bg-base-300 border border-base-100 mt-5">
+            <div className="bg-base-200 p-5 pb-8">
+              <div className="bg-base-300 p-5 rounded-xl">
+                <h5 className="text-gray-500 font-extralight">Sell</h5>
+                <div className="flex justify-between items-center my-2">
+                  <input
+                    className="bg-transparent text-3xl my-2 outline-none"
+                    type="text"
+                    placeholder="0.0"
+                    value={sellValue}
+                    onChange={customOnChange}
+                  />
+                  <select className="rounded-full h-10 px-4 border-r-8 border-transparent bg-base-200">
+                    <option>ETH</option>
+                    <option>ENC</option>
+                  </select>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>$ 0.00</span>
+                  <span className="flex">
+                    <WalletIcon className="w-6 mx-2" /> 0.00
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-center my-3">
+                <ArrowsUpDownIcon className="border border-blue-400 stroke-blue-500 rounded-full p-1.5 w-8 cursor-pointer hover:bg-blue-600 hover:stroke-white" />
+              </div>
+              <div className="bg-base-300 p-5 rounded-xl">
+                <h5 className="text-gray-500 font-extralight">Buy</h5>
+                <div className="flex justify-between items-center my-2">
+                  <input className="bg-transparent text-3xl my-2 outline-none" type="text" placeholder="0.0" readOnly />
+                  <select className="rounded-full h-10 px-4 border-r-8 border-transparent bg-base-200">
+                    <option>ENC</option>
+                    <option>ETH</option>
+                  </select>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>$ 0.00</span>
+                  <span className="flex">
+                    <WalletIcon className="w-6 mx-2" /> 0.00
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
+            <button className="p-5 bg-blue-500 hover:bg-blue-600">Swap</button>
           </div>
         </div>
+      </div>
+      <div className="flex justify-center mt-12">
+        <Image className="w-1/3 lg:w-1/5" alt="coins" src={coins} />
       </div>
     </>
   );
