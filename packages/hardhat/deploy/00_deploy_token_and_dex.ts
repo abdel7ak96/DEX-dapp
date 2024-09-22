@@ -1,60 +1,46 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Contract } from "ethers";
+import { Contract, parseEther } from "ethers";
 
-/**
- * Deploys a contract named "EncodeToken" using the deployer account and
- * constructor arguments set to the deployer address
- *
- * @param hre HardhatRuntimeEnvironment object.
- */
 const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  /*
-    On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
-
-    When deploying to live networks (e.g `yarn deploy --network sepolia`), the deployer account
-    should have sufficient balance to pay for the gas fees for contract creation.
-
-    You can generate a random account with `yarn generate` which will fill DEPLOYER_PRIVATE_KEY
-    with a random private key in the .env file (then used on hardhat.config.ts)
-    You can run the `yarn account` command to check your balance in every network.
-  */
-  const { deployer } = await hre.getNamedAccounts();
+  const [, deployer] = await hre.getUnnamedAccounts();
   const { deploy } = hre.deployments;
 
-  await deploy("EncodeToken", {
+  // 1. Deploy token contract
+  console.log("📄 Deploying EncodeToken contract");
+  const { address: tokenAddress } = await deploy("EncodeToken", {
     from: deployer,
-    // Contract constructor arguments
     args: [deployer],
     log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
 
   // Get the deployed contract to interact with it after deploying.
   const tokenContract = await hre.ethers.getContract<Contract>("EncodeToken", deployer);
-  console.log("🟢 Token name:", await tokenContract.name());
 
-  const tokenAddress = await tokenContract.getAddress();
-  const name = await tokenContract.name();
-  const symbol = await tokenContract.symbol();
+  // 2. Mint 100 ENC to deployer
+  console.log("🌿 Minting a 100 ENC to deployer account...");
+  await tokenContract.mint(deployer, parseEther("100"));
 
-  console.log("🟢 Token address :", tokenAddress);
-
-  await deploy("DEX", {
+  // 3. Deploy decentralized exchange token
+  console.log("📄 Deploying DEX contract...");
+  const { address: dexAddress } = await deploy("DEX", {
     from: deployer,
-    // Contract constructor arguments
-    args: [tokenAddress, name, symbol],
+    args: [tokenAddress, "DEX Token", "DEX"],
     log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
 
   // Get the deployed contract to interact with it after deploying.
   const dexContract = await hre.ethers.getContract<Contract>("DEX", deployer);
-  console.log("🟢 Tokens in contract:", await dexContract.getTokensInContract());
+
+  // 4. Allow DEX contract to spend 100 ETH
+  console.log("✅ Approving 100 ENC for spending by DEX contract");
+  await tokenContract.approve(dexAddress, parseEther("100"));
+
+  // 5. Add Liquidity to DEX contract
+  console.log("🚰 Adding Liquidity to DEX contract");
+  await dexContract.addLiquidity(parseEther("100"), { value: parseEther("100") });
 };
 
 export default deployContracts;

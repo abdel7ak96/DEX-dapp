@@ -68,7 +68,7 @@ contract DEX is ERC20 {
 		// uint256 inputAmountWithFee = inputAmount * 99;
 		uint256 inputAmountWithFee = inputAmount;
 		uint256 numerator = inputAmountWithFee * outputReserve;
-		uint256 denominator = (inputReserve * 100) + inputAmountWithFee;
+		uint256 denominator = (inputReserve / 2) + inputAmountWithFee;
 		unchecked {
 			return numerator / denominator;
 		}
