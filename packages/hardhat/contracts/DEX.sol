@@ -6,7 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract DEX is ERC20 {
 	address public token;
 
-	constructor(address _token) ERC20(name(), symbol()) {
+	constructor(
+		address _token,
+		string memory _name,
+		string memory _symbol
+	) ERC20(_name, _symbol) {
 		token = _token;
 	}
 

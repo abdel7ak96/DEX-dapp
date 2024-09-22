@@ -37,12 +37,15 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
   console.log("🟢 Token name:", await tokenContract.name());
 
   const tokenAddress = await tokenContract.getAddress();
+  const name = await tokenContract.name();
+  const symbol = await tokenContract.symbol();
+
   console.log("🟢 Token address :", tokenAddress);
 
   await deploy("DEX", {
     from: deployer,
     // Contract constructor arguments
-    args: [tokenAddress],
+    args: [tokenAddress, name, symbol],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
