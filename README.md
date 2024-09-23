@@ -4,16 +4,34 @@ This project was created by Pitycake and Abdel7ak96.
 
 To do: Explaining our use case
 
-To do: Explaining the contracts
+**Deployment script**
 
-DEX (Decentralized Exchange) Smart Contract
+This Solidity deployment script creates a simple decentralized exchange (DEX) that allows users to:
 
-This Solidity smart contract implements a simple decentralized exchange (DEX) where users can add liquidity, remove liquidity, and swap between ETH and an ERC20 token. It leverages the ERC20 standard from OpenZeppelin to manage the token interactions.
+    Add Liquidity: Users can deposit both ETH and ENC(EncodeToken) into the contract. In return, they receive "liquidity tokens," which represent their share of the pool.
+
+    Remove Liquidity: Users can withdraw their share of ETH and ENC tokens from the liquidity pool by returning the liquidity tokens they received earlier.
+
+    Swap Tokens:
+        Users can swap ETH for ENC.
+        Users can also swap the ENC back to ETH.
+
+Key Features:
+
+    The contract keeps track of how much ETH and tokens it holds.
+    Liquidity providers can add and remove their share of the pool at any time.
+    Swapping tokens is based on the pool's current reserves, ensuring fair trades.
+
+The contract operates under the control of its creator and interacts with ENC.
+
+**DEX (Decentralized Exchange) Smart Contract**
+
+This  smart contract is the underlying basis for our simple decentralized exchange (DEX) where users can add liquidity, remove liquidity, and swap between ETH and ENC. It leverages the ERC20 standard from OpenZeppelin to manage the token interactions.
 
 Features:
 
     Liquidity Management
-        Users can add liquidity by depositing ETH and an ERC20 token.
+        Users can add liquidity by depositing ETH and ENC.
         Users can remove liquidity, receiving a proportional amount of ETH and ERC20 tokens based on their share of the liquidity pool.
 
     Token Swapping
@@ -24,7 +42,7 @@ Features:
     Fee Calculation
         By default, the contract calculates a fee (optional or customizable) for token swaps.
 
-EncodeToken (ERC20 Token Contract)
+**EncodeToken (ERC20 Token Contract)**
 
 The EncodeToken is a simple ERC20 token contract based on OpenZeppelin's implementation. It includes features for token minting, ownership control, and permit functionality. The token is designed to be managed by an owner, who can mint tokens to specified addresses.
 
