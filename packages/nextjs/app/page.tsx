@@ -4,15 +4,28 @@ import { ChangeEvent, useCallback, useState } from "react";
 import Image from "next/image";
 import coins from "../assets/coins.png";
 import type { NextPage } from "next";
+import { formatEther, parseEther } from "viem";
+import { useAccount } from "wagmi";
 import { ArrowsUpDownIcon, WalletIcon } from "@heroicons/react/24/solid";
+import { Balance } from "~~/components/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
-  const [sellValue, setSellValue] = useState<number>();
+  const { address: connectedAddress } = useAccount();
+  const [sellValue, setSellValue] = useState<string>("");
+
+  const { writeContractAsync: writeYourContractAsync } = useScaffoldWriteContract("DEX");
+
+  const { data: balanceENC = BigInt(0) } = useScaffoldReadContract({
+    contractName: "EncodeToken",
+    functionName: "balanceOf",
+    args: [connectedAddress],
+  });
 
   const customOnChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const re = /^[0-9\b]+$/;
+    const re = /^(\d+(\.\d*)?|\.\d+)$/;
     if (e.target.value === "" || re.test(e.target.value)) {
-      setSellValue(parseFloat(e.target.value) || 0);
+      setSellValue(e.target.value || "");
     }
   }, []);
 
@@ -25,7 +38,7 @@ const Home: NextPage = () => {
         </div>
         <div className="w-2/3 lg:w-1/3 m-auto">
           <h1 className="text-4xl font-bold">Trade</h1>
-          <span className="text-blue-400">1 ENC ($0.69) = 0.0003 ETH ($2.56k)</span>
+          <span className="text-blue-400">1.66 ENC = 1 ETH</span>
           <div className="mockup-window bg-base-300 border border-base-100 mt-5">
             <div className="bg-base-200 p-5 pb-8">
               <div className="bg-base-300 p-5 rounded-xl">
@@ -44,9 +57,10 @@ const Home: NextPage = () => {
                   </select>
                 </div>
                 <div className="flex justify-between text-gray-500">
-                  <span>$ 0.00</span>
+                  <Balance address={connectedAddress} usdMode className="p-0 text-lg" />
                   <span className="flex">
-                    <WalletIcon className="w-6 mx-2" /> 0.00
+                    <WalletIcon className="w-6 mx-2" />
+                    <Balance address={connectedAddress} className="p-0 text-lg" />
                   </span>
                 </div>
               </div>
@@ -63,14 +77,29 @@ const Home: NextPage = () => {
                   </select>
                 </div>
                 <div className="flex justify-between text-gray-500">
-                  <span>$ 0.00</span>
+                  <span>$ 0</span>
                   <span className="flex">
-                    <WalletIcon className="w-6 mx-2" /> 0.00
+                    <WalletIcon className="w-6 mx-2" /> {formatEther(balanceENC)}
                   </span>
                 </div>
               </div>
             </div>
-            <button className="p-5 bg-blue-500 hover:bg-blue-600">Swap</button>
+            <button
+              className="p-5 bg-blue-500 hover:bg-blue-600"
+              disabled={sellValue === "" || parseFloat(sellValue) === 0}
+              onClick={async () => {
+                try {
+                  await writeYourContractAsync({
+                    functionName: "swapEthTotoken",
+                    value: parseEther(sellValue),
+                  });
+                } catch (e) {
+                  console.error("Error setting greeting:", e);
+                }
+              }}
+            >
+              Swap
+            </button>
           </div>
         </div>
       </div>
