@@ -28,16 +28,24 @@ const Home: NextPage = () => {
     address: dexContractABI[31337].DEX.address,
   });
 
-  const { writeContractAsync: writeYourContractAsync } = useScaffoldWriteContract("DEX");
-  const { data: buyValue } = useScaffoldReadContract({
+  const { writeContractAsync: writeDexContractAsync } = useScaffoldWriteContract("DEX");
+  const { writeContractAsync: writeEncContractAsync } = useScaffoldWriteContract("EncodeToken");
+
+  const { data: sellFactor = BigInt(1) } = useScaffoldReadContract({
     contractName: "DEX",
     functionName: "getAmountOfTokens",
     args: [
-      parseEther(sellValue),
+      parseEther("1"),
       dexContractBalance.data?.value,
-      (dexContractBalance.data?.value || BigInt(0)) - parseEther(sellValue),
+      (dexContractBalance.data?.value || BigInt(0)) - parseEther("1"),
     ],
   });
+
+  useEffect(() => {
+    console.log(sellValue);
+    console.log(formatEther(BigInt(sellFactor)));
+    console.log("Result of division :", parseFloat(sellValue) / parseFloat(formatEther(BigInt(sellFactor))));
+  }, [sellFactor, sellValue]);
 
   const { data: balanceENC = BigInt(0) } = useScaffoldReadContract({
     contractName: "EncodeToken",
@@ -70,7 +78,9 @@ const Home: NextPage = () => {
         </div>
         <div className="w-2/3 lg:w-1/3 m-auto">
           <h1 className="text-4xl font-bold">Trade</h1>
-          <span className="text-blue-400">1.66 ENC = 1 ETH</span>
+          <span className="text-blue-400">
+            {parseFloat(formatEther(sellFactor || BigInt(0))).toFixed(4)} ENC = 1 ETH
+          </span>
           <div className="mockup-window bg-base-300 border border-base-100 mt-5">
             <div className="bg-base-200 p-5 pb-8">
               {/* Sell section */}
@@ -85,7 +95,15 @@ const Home: NextPage = () => {
               </div>
 
               {/* Sell section */}
-              <InputSection value={formatEther(buyValue || BigInt(0))} token={buyToken} {...params[buyToken]} />
+              <InputSection
+                value={
+                  sellToken === "eth"
+                    ? formatEther(BigInt(sellValue) * BigInt(sellFactor))
+                    : (parseFloat(sellValue) / parseFloat(formatEther(BigInt(sellFactor)))).toString() || "0"
+                }
+                token={buyToken}
+                {...params[buyToken]}
+              />
             </div>
             <button
               className="p-5 bg-blue-500 hover:bg-blue-600"
@@ -93,7 +111,7 @@ const Home: NextPage = () => {
               onClick={async () => {
                 if (sellToken === "eth") {
                   try {
-                    await writeYourContractAsync({
+                    await writeDexContractAsync({
                       functionName: "swapEthTotoken",
                       value: parseEther(sellValue),
                     });
@@ -102,12 +120,16 @@ const Home: NextPage = () => {
                   }
                 } else {
                   try {
-                    await writeYourContractAsync({
+                    await writeEncContractAsync({
+                      functionName: "approve",
+                      args: [dexContractABI[31337].DEX.address, parseEther(sellValue)],
+                    });
+                    await writeDexContractAsync({
                       functionName: "swapTokenToEth",
                       args: [parseEther(sellValue)],
                     });
                   } catch (e) {
-                    console.error("Error token to eth:", e);
+                    console.error("Error swapping token to eth:", e);
                   }
                 }
               }}
