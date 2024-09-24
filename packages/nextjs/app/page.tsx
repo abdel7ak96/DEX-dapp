@@ -3,18 +3,34 @@
 import { ChangeEvent, useCallback, useState } from "react";
 import Image from "next/image";
 import coins from "../assets/coins.png";
+import dexContractABI from "../contracts/deployedContracts";
 import type { NextPage } from "next";
 import { formatEther, parseEther } from "viem";
 import { useAccount } from "wagmi";
 import { ArrowsUpDownIcon, WalletIcon } from "@heroicons/react/24/solid";
 import { Balance } from "~~/components/scaffold-eth";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract, useWatchBalance } from "~~/hooks/scaffold-eth";
+
+const ENC_PRICE = 12;
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
   const [sellValue, setSellValue] = useState<string>("");
 
+  const dexContractBalance = useWatchBalance({
+    address: dexContractABI[31337].DEX.address,
+  });
+
   const { writeContractAsync: writeYourContractAsync } = useScaffoldWriteContract("DEX");
+  const { data: buyValue } = useScaffoldReadContract({
+    contractName: "DEX",
+    functionName: "getAmountOfTokens",
+    args: [
+      parseEther(sellValue),
+      dexContractBalance.data?.value,
+      (dexContractBalance.data?.value || BigInt(0)) - parseEther(sellValue),
+    ],
+  });
 
   const { data: balanceENC = BigInt(0) } = useScaffoldReadContract({
     contractName: "EncodeToken",
@@ -70,16 +86,22 @@ const Home: NextPage = () => {
               <div className="bg-base-300 p-5 rounded-xl">
                 <h5 className="text-gray-500 font-extralight">Buy</h5>
                 <div className="flex justify-between items-center my-2">
-                  <input className="bg-transparent text-3xl my-2 outline-none" type="text" placeholder="0.0" readOnly />
+                  <input
+                    className="bg-transparent text-3xl my-2 outline-none text-gray-400"
+                    type="text"
+                    value={formatEther(buyValue || BigInt(0))}
+                    placeholder="0.0"
+                    readOnly
+                  />
                   <select className="rounded-full h-10 px-4 border-r-8 border-transparent bg-base-200">
                     <option>ENC</option>
                     <option>ETH</option>
                   </select>
                 </div>
                 <div className="flex justify-between text-gray-500">
-                  <span>$ 0</span>
+                  <span>$ {(parseFloat(formatEther(balanceENC)) * ENC_PRICE).toFixed(4)}</span>
                   <span className="flex">
-                    <WalletIcon className="w-6 mx-2" /> {formatEther(balanceENC)}
+                    <WalletIcon className="w-6 mx-2" /> {parseFloat(formatEther(balanceENC)).toFixed(4)}
                   </span>
                 </div>
               </div>
