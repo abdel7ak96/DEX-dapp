@@ -84,7 +84,13 @@ const Home: NextPage = () => {
           <div className="mockup-window bg-base-300 border border-base-100 mt-5">
             <div className="bg-base-200 p-5 pb-8">
               {/* Sell section */}
-              <InputSection value={sellValue} onChange={customOnChange} token={sellToken} {...params[sellToken]} />
+              <InputSection
+                label={"Sell"}
+                value={sellValue}
+                onChange={customOnChange}
+                token={sellToken}
+                {...params[sellToken]}
+              />
 
               {/* Switch section */}
               <div className="flex justify-center my-3">
@@ -96,6 +102,7 @@ const Home: NextPage = () => {
 
               {/* Sell section */}
               <InputSection
+                label="Buy"
                 value={
                   sellToken === "eth"
                     ? formatEther(BigInt(sellValue) * BigInt(sellFactor))
@@ -152,16 +159,18 @@ const InputSection = ({
   address,
   balance,
   token,
+  label,
 }: {
   value: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   address?: string;
   balance?: string;
   token: "enc" | "eth";
+  label: string;
 }) => {
   return (
     <div className="bg-base-300 p-5 rounded-xl">
-      <h5 className="text-gray-500 font-extralight">Sell</h5>
+      <h5 className="text-gray-500 font-extralight">{label}</h5>
       <div className="flex justify-between items-center my-2">
         <input
           className="bg-transparent text-3xl my-2 outline-none"
