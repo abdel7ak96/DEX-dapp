@@ -106,7 +106,7 @@ const Home: NextPage = () => {
                 value={
                   sellToken === "eth"
                     ? formatEther(BigInt(sellValue) * BigInt(sellFactor))
-                    : (parseFloat(sellValue) / parseFloat(formatEther(BigInt(sellFactor)))).toString() || "0"
+                    : (parseFloat(sellValue) / parseFloat(formatEther(BigInt(sellFactor))) || "0").toString()
                 }
                 token={buyToken}
                 {...params[buyToken]}
